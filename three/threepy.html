@@ -1,0 +1,133 @@
+<html>
+<head>
+    <title>THREE and PY</title>
+    <meta charset="iso-8859-1">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.143.0/build/three.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/three@0.143.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://raw.githack.com/brython-dev/brython/master/www/src/brython.js"></script>
+    <script src="https://raw.githack.com/brython-dev/brython/master/www/src/brython_stdlib.js"></script>
+    <style>
+		canvas{
+			position: fixed;
+			top:  0;
+			left: 0;
+		}
+	</style>
+<script type="text/python">
+	from browser import document,window
+	from itertools import repeat
+	THREE = window.THREE
+	orbit = window.THREE.OrbitControls
+	scene = THREE.Scene.new()
+
+	camera = THREE.PerspectiveCamera.new(75,window.innerWidth/window.innerHeight,0.1,1000)
+
+	renderer = THREE.WebGLRenderer.new({"canvas": document.select("#bg")[0]})
+
+	renderer.setPixelRatio(window.devicePixelRatio)
+
+	renderer.setSize(window.innerWidth,window.innerHeight)
+
+	camera.position.setZ(30)
+
+	renderer.render(scene,camera)
+
+	geometry = THREE.TorusGeometry.new(10,3,16,100)
+
+	material = THREE.MeshStandardMaterial.new({"color":0xFF6347})
+
+	torus = THREE.Mesh.new(geometry,material)
+
+	scene.add(torus)
+
+	pointLight = THREE.PointLight.new(0xffffff)
+	pointLight.position.set(5,5,5)
+
+	ambientLight = THREE.AmbientLight.new(0xffffff)
+	scene.add(pointLight, ambientLight)
+
+	lightHelper = THREE.PointLightHelper.new(pointLight)
+	gridHelper = THREE.GridHelper.new(200,50)
+	scene.add(lightHelper,gridHelper)
+
+	document <= renderer.domElement
+	renderer.render(scene, camera)
+
+	controls = orbit.new(camera, renderer.domElement)	
+
+
+
+	def addStar():
+		geometry2 = THREE.SphereGeometry.new(0.25,24,24)
+		material2 = THREE.MeshStandardMaterial.new({"color":0xffffff})
+		star2 = THREE.Mesh.new(geometry2,material2)
+
+		x=THREE.MathUtils.randFloatSpread( 100 )
+		y=THREE.MathUtils.randFloatSpread( 100 )
+		z=THREE.MathUtils.randFloatSpread( 100 )
+
+		star2.position.set(x,y,z)
+		scene.add(star2)
+		
+
+	for i in range(200):
+		addStar() 
+	
+	loader = THREE.TextureLoader.new()
+	mapOverlay = loader.load('https://images.unsplash.com/photo-1593959734793-6e92d102da1e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1yZWxhdGVkfDE0fHx8ZW58MHx8fHw%3D&w=1000&q=80') 
+
+	scene.background=mapOverlay
+
+	picTexture = THREE.TextureLoader.new()
+	pic = picTexture.load('https://raw.githubusercontent.com/fireship-io/threejs-scroll-animation-demo/main/jeff.png')
+	jeff = THREE.Mesh.new(THREE.BoxGeometry.new(3,3,3),THREE.MeshBasicMaterial.new({ "map" : pic }))
+
+	scene.add(jeff)
+
+	moonTexture = THREE.TextureLoader.new().load('https://raw.githubusercontent.com/fireship-io/threejs-scroll-animation-demo/main/moon.jpg')
+
+	normalTexture = THREE.TextureLoader.new().load('https://raw.githubusercontent.com/fireship-io/threejs-scroll-animation-demo/main/normal.jpg')
+
+	moon = THREE.Mesh.new(THREE.SphereGeometry.new(3,32,32),THREE.MeshStandardMaterial.new({ "map" : moonTexture, "normalMap" : normalTexture }))
+
+	scene.add(moon)
+
+	moon.position.z=30
+	moon.position.setX(-10)
+
+	bod=document.select("body")
+
+	def moveCamera():
+		t=bod[0].getBoundingClientRect().top
+		print(t)
+		moon.rotation.x += 0.05
+		moon.rotation.y += 0.075
+		moon.rotation.z += 0.05
+		
+		jeff.rotation.y += 0.01
+		jeff.rotation.z += 0.01
+
+		camera.position.z = t * -0.01
+		camera.position.x = t * -0.0002
+		camera.rotation.y = t * -0.0002
+
+	bod[0].bind('scroll',moveCamera)
+	def animate(i):
+    	
+		
+		torus.rotation.x += 0.01
+		torus.rotation.y += 0.005
+		torus.rotation.z += 0.01
+		window.requestAnimationFrame(animate)
+
+		controls.update()
+
+		renderer.render(scene, camera)
+
+	animate(0)
+</script>
+
+</head>
+<body onload="brython()">
+    <canvas id="bg"></canvas>
+</body>
+</html>
